@@ -1,0 +1,18 @@
+/*
+  Warnings:
+
+  - Added the required column `password` to the `User` table without a default value. This is not possible if the table is not empty.
+
+*/
+-- AlterTable
+ALTER TABLE "Group" ADD COLUMN     "active" BOOLEAN NOT NULL DEFAULT true;
+
+-- AlterTable
+ALTER TABLE "Permission" ADD COLUMN     "active" BOOLEAN NOT NULL DEFAULT true;
+
+-- AlterTable
+ALTER TABLE "Role" ADD COLUMN     "active" BOOLEAN NOT NULL DEFAULT true;
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "needToResetPassword" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "password" TEXT NOT NULL;

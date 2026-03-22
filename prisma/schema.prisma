@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                  Int                @id @default(autoincrement())
+  email               String             @unique
+  name                String
+  password            String
+  needToResetPassword Boolean            @default(true)
+  active              Boolean            @default(true)
+  createdAt           DateTime           @default(now())
+  // Relations for other tables
+  createdGroups       Group[]            @relation("GroupCreator")
+  updatedGroups       Group[]            @relation("GroupUpdater")
+  createdRoles        Role[]             @relation("RoleCreator")
+  updatedRoles        Role[]             @relation("RoleUpdater")
+  createdPermissions  Permission[]       @relation("PermissionCreator")
+  updatedPermissions  Permission[]       @relation("PermissionUpdater")
+  createdUserGroups   MMUserGroup[]      @relation("MMUserGroupCreator")
+  createdGroupRoles   MMGroupRole[]      @relation("MMGroupRoleCreator")
+  createdRolePerms    MMRolePermission[] @relation("MMRolePermCreator")
+  // Relationship
+  userGroups          MMUserGroup[]      @relation("UserToMM")
+}
+
+model Group {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  description String
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  // Relation fields
+  createdById Int
+  updatedById Int
+  createdBy   User          @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  updatedBy   User          @relation("GroupUpdater", fields: [updatedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  // Relationship
+  userGroups  MMUserGroup[]
+  groupRoles  MMGroupRole[]
+}
+
+model Role {
+  id              Int                @id @default(autoincrement())
+  name            String             @unique
+  description     String
+  active          Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  // Relation fields
+  createdById     Int
+  updatedById     Int
+  createdBy       User               @relation("RoleCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  updatedBy       User               @relation("RoleUpdater", fields: [updatedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  // Relationship
+  groupRoles      MMGroupRole[]
+  rolePermissions MMRolePermission[]
+}
+
+model Permission {
+  id              Int                @id @default(autoincrement())
+  action          String             @unique
+  active          Boolean            @default(true)
+  description     String
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  // Relation fields
+  createdById     Int
+  updatedById     Int
+  createdBy       User               @relation("PermissionCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  updatedBy       User               @relation("PermissionUpdater", fields: [updatedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  // Relationship
+  rolePermissions MMRolePermission[]
+}
+
+// Many-to-Many Relations
+model MMUserGroup {
+  userId      Int
+  groupId     Int
+  createdAt   DateTime @default(now())
+  createdById Int
+  createdBy   User     @relation("MMUserGroupCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  // Relation fields
+  user        User     @relation("UserToMM", fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  // Primary key
+  @@id([userId, groupId])
+}
+
+model MMGroupRole {
+  groupId     Int
+  roleId      Int
+  createdAt   DateTime @default(now())
+  createdById Int
+  createdBy   User     @relation("MMGroupRoleCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  // Relation fields
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  role        Role     @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  // Primary key
+  @@id([groupId, roleId])
+}
+
+model MMRolePermission {
+  roleId       Int
+  permissionId Int
+  createdAt    DateTime   @default(now())
+  createdById  Int
+  createdBy    User       @relation("MMRolePermCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  // Relation fields
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  // Primary key
+  @@id([roleId, permissionId])
+}
