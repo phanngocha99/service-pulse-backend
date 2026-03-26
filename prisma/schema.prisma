@@ -5,7 +5,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -14,8 +13,8 @@ datasource db {
 
 model User {
   id                  Int                @id @default(autoincrement())
-  email               String             @unique
-  name                String
+  name                String             @unique
+  email               String?
   password            String
   needToResetPassword Boolean            @default(true)
   active              Boolean            @default(true)
@@ -25,8 +24,6 @@ model User {
   updatedGroups       Group[]            @relation("GroupUpdater")
   createdRoles        Role[]             @relation("RoleCreator")
   updatedRoles        Role[]             @relation("RoleUpdater")
-  createdPermissions  Permission[]       @relation("PermissionCreator")
-  updatedPermissions  Permission[]       @relation("PermissionUpdater")
   createdUserGroups   MMUserGroup[]      @relation("MMUserGroupCreator")
   createdGroupRoles   MMGroupRole[]      @relation("MMGroupRoleCreator")
   createdRolePerms    MMRolePermission[] @relation("MMRolePermCreator")
@@ -70,18 +67,15 @@ model Role {
 
 model Permission {
   id              Int                @id @default(autoincrement())
-  action          String             @unique
+  action          String
+  resource        String
+  scope           String
   active          Boolean            @default(true)
   description     String
   createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  // Relation fields
-  createdById     Int
-  updatedById     Int
-  createdBy       User               @relation("PermissionCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  updatedBy       User               @relation("PermissionUpdater", fields: [updatedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  // Relationship
   rolePermissions MMRolePermission[]
+
+  @@unique([action, resource, scope])
 }
 
 // Many-to-Many Relations

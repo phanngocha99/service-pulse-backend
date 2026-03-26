@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
+  // Check connection
+  get(): string {
     console.log('Start ServicePulse!');
     return 'Hello ServicePulse!';
   }

@@ -20,6 +20,7 @@ services:
     ports:
       - '${APP_PORT:-5200}:5200' # API server 
       - '${DEBUG_PORT:-9229}:9229' # Node.js debugger
+      - '${PRISMA_PORT:-5555}:5555' # Prisma Studio
     environment:
       NODE_ENV: development
       DOCKER_ENV: 'true'
@@ -34,9 +35,11 @@ services:
       - .:/app
       - /app/node_modules
     command: >
-      sh -c "npx prisma db push && 
-      npx prisma db seed && 
-      npm run start:dev"
+      sh -c "npx prisma generate && 
+         npx prisma migrate dev && 
+         npx prisma db push --accept-data-loss && 
+         npx prisma db seed && 
+         npm run start:dev"
     depends_on:
       db:
         condition: service_healthy

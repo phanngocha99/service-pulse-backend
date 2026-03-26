@@ -1,13 +1,15 @@
-import { prisma } from '../lib/prisma';
+import { prisma } from './prisma.js';
 
 async function main() {
-  // Fetch group with group name
+  if (process.env.NAME_GROUP) {
+    throw new Error('NAME_GROUP environment variable is not defined');
+  }
   const group = await prisma.group.findUnique({
     where: {
-      name: 'Administrators',
+      name: process.env.NAME_GROUP,
     },
   });
-  console.log('Group:', JSON.stringify(group, null, 2));
+  console.log('Group:', JSON.stringify(group));
 }
 
 main()
