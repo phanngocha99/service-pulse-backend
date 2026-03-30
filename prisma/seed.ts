@@ -1,8 +1,9 @@
 import { Pool } from 'pg';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { BcryptService } from '../src/common/bcrypt/bcrypt.service.ts';
-import { PERMISSIONS } from '../src/permissions/enum/permissions.enum.ts';
+import { BcryptService } from '../src/common/bcrypt/bcrypt.service.js';
+import { PERMISSIONS } from './permissions.enum.js';
+import { Permission } from '@prisma/client';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -13,11 +14,11 @@ async function main() {
 
   // USER - Create the "System Administrator" User
   const bscrypt = new BcryptService();
-  if (process.env.PASS_ADMIN) {
+  if (!process.env.PASS_ADMIN) {
     throw new Error('PASS_ADMIN environment variable is not defined');
   }
-  if (process.env.PASS_NAME) {
-    throw new Error('PASS_NAME environment variable is not defined');
+  if (!process.env.NAME_ADMIN) {
+    throw new Error('NAME_ADMIN environment variable is not defined');
   }
   const hashedPassword = await bscrypt.hashPassword(process.env.PASS_ADMIN!);
   const sysAdminUser = await prisma.user.upsert({
@@ -32,13 +33,13 @@ async function main() {
     },
   });
 
-  console.log(`${sysAdminUser.name} User created: ${sysAdminUser.email}`);
+  console.log(`${sysAdminUser.name} User created`);
 
   // GROUP - Create the "Administrators" Group
-  if (process.env.NAME_GROUP) {
+  if (!process.env.NAME_GROUP) {
     throw new Error('NAME_GROUP environment variable is not defined');
   }
-  if (process.env.DESCRIPTION_GROUP) {
+  if (!process.env.DESCRIPTION_GROUP) {
     throw new Error('DESCRIPTION_GROUP environment variable is not defined');
   }
   const adminGroup = await prisma.group.upsert({
@@ -54,10 +55,10 @@ async function main() {
   });
 
   // ROLE - Create an "admin" role
-  if (process.env.NAME_ROLE) {
+  if (!process.env.NAME_ROLE) {
     throw new Error('NAME_GROUP environment variable is not defined');
   }
-  if (process.env.DESCRIPTION_ROLE) {
+  if (!process.env.DESCRIPTION_ROLE) {
     throw new Error('DESCRIPTION_ROLE environment variable is not defined');
   }
   const adminRole = await prisma.role.upsert({
@@ -77,37 +78,70 @@ async function main() {
   for (const p of PERMISSIONS) {
     await prisma.permission.upsert({
       where: {
-        action_resource_scope: {
+        action_resource_scope_fields: {
           action: p.action,
           resource: p.resource,
           scope: p.scope,
+          fields: p.fields,
         },
       },
-      update: {},
-      create: { ...p },
+      update: {
+        description: p.description,
+        fields: p.fields,
+      },
+      create: {
+        action: p.action,
+        resource: p.resource,
+        scope: p.scope,
+        description: p.description,
+        fields: p.fields,
+      },
     });
   }
 
   // --- Create MANY-TO-MANY ---
 
   //MMRolePermission
-  for (const permision of PERMISSIONS) {
+  const dbPermissions: Permission[] = [];
+
+  for (const p of PERMISSIONS) {
+    const upsertedPermission = await prisma.permission.upsert({
+      where: {
+        action_resource_scope_fields: {
+          action: p.action,
+          resource: p.resource,
+          scope: p.scope,
+          fields: p.fields,
+        },
+      },
+      update: { description: p.description, fields: p.fields },
+      create: {
+        action: p.action,
+        resource: p.resource,
+        scope: p.scope,
+        description: p.description,
+        fields: p.fields,
+      },
+    });
+
+    dbPermissions.push(upsertedPermission);
+  }
+  for (const dbPerm of dbPermissions) {
     await prisma.mMRolePermission.upsert({
       where: {
         roleId_permissionId: {
           roleId: adminRole.id,
-          permissionId: permision.id,
+          permissionId: dbPerm.id,
         },
       },
       update: {},
       create: {
         roleId: adminRole.id,
-        permissionId: permision.id,
+        permissionId: dbPerm.id,
         createdById: sysAdminUser.id,
       },
     });
   }
-
   // MMGroupRole
   await prisma.mMGroupRole.upsert({
     where: {

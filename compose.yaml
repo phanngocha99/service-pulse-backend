@@ -56,7 +56,7 @@ services:
       target: production
     container_name: servicepulse-prod
     ports:
-      - '${PROD_PORT:-8080}:5200'
+      - '${PROD_PORT:-8080}:8080'
     environment:
       NODE_ENV: production
       POSTGRES_HOST: db

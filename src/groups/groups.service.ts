@@ -23,8 +23,6 @@ export class GroupsServices {
       throw new ConflictException('Group name already taken!');
     }
 
-    console.log(req);
-
     return this.prismaService.group.create({
       data: {
         name: dto.name,

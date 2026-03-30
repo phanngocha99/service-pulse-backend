@@ -3,8 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module.js';
-import { GroupsModule } from '../groups/groups.module.ts';
-import { RolesModule } from '../roles/roles.module.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { LocalStrategy } from './strategies/local.strategy.js';
@@ -18,8 +16,6 @@ import { ConfigService } from '@nestjs/config';
   imports: [
     ConfigModule,
     UsersModule,
-    GroupsModule,
-    RolesModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

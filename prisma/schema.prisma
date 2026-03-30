@@ -72,16 +72,18 @@ model Permission {
   scope           String
   active          Boolean            @default(true)
   description     String
+  fields          String[]           @default(["me"])
   createdAt       DateTime           @default(now())
   rolePermissions MMRolePermission[]
 
-  @@unique([action, resource, scope])
+  @@unique([action, resource, scope, fields])
 }
 
 // Many-to-Many Relations
 model MMUserGroup {
   userId      Int
   groupId     Int
+  active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   createdById Int
   createdBy   User     @relation("MMUserGroupCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
@@ -96,6 +98,7 @@ model MMUserGroup {
 model MMGroupRole {
   groupId     Int
   roleId      Int
+  active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   createdById Int
   createdBy   User     @relation("MMGroupRoleCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
@@ -110,6 +113,7 @@ model MMGroupRole {
 model MMRolePermission {
   roleId       Int
   permissionId Int
+  active       Boolean    @default(true)
   createdAt    DateTime   @default(now())
   createdById  Int
   createdBy    User       @relation("MMRolePermCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
