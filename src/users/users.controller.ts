@@ -1,103 +1,118 @@
 import {
   Controller,
-  UseGuards,
+  Param,
+  Query,
   Get,
   Post,
   Patch,
   Body,
-  ValidationPipe,
   Request,
+  UseGuards,
+  ValidationPipe,
   UseInterceptors,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.ts';
-import { PermissionGuard } from '../permissions/permissions.guard.js';
-import { PERMISSIONS_GLOBAL } from '../permissions/constant/global.permissions.constant.js';
-import { FieldSerializerInterceptor } from '../common/interceptors/fields.permission.interceptor.js';
-import { Permission } from '../common/decorators/permission.decorator.js';
-import { UserResponse } from '../common/interfaces/user-response.interface.js';
-import { MmUserGroupResponse } from '../common/interfaces/mmUserGroup-response.interface.js';
-import { UsersServices } from '../users/users.service.js';
 import {
+  QueryUserDto,
   CreateUserDto,
   UpdateUserDto,
-  DeleteUserDto,
 } from '../users/dto/user.dto.js';
-import {
-  CreateMmUserGroupDto,
-  DeleteMmUserGroupDto,
-} from './dto/mmUserGroup.dto.ts';
+
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.ts';
+import { PermissionGuard } from '../permissions/permissions.guard.js';
+import { Permission } from '../common/decorators/permission.decorator.js';
+import { PERMISSIONS_GLOBAL } from '../permissions/constant/global.permissions.constant.js';
+import { UsersServices } from '../users/users.service.js';
+import { UserResponse } from '../common/interfaces/user-response.interface.js';
+import { FieldSerializerInterceptor } from '../common/interceptors/fields.permission.interceptor.js';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersServices: UsersServices) {}
 
-  // Check connection
-  @Get('users')
+  @Get('health')
   test() {
     return 'users-ok';
   }
 
-  //   CRUD User Global
   @UseGuards(JwtAuthGuard, PermissionGuard)
   @Permission([PERMISSIONS_GLOBAL.ADMIN_CREATE_USER])
-  @Post('/create-user')
+  @Post()
   createUser(
     @Body(ValidationPipe) createUserDto: CreateUserDto,
+    @Request() req,
   ): Promise<UserResponse> {
-    return this.usersServices.createUser(createUserDto);
+    return this.usersServices.createUser(createUserDto, req.user);
   }
 
   @UseGuards(JwtAuthGuard, PermissionGuard)
   @Permission([PERMISSIONS_GLOBAL.ADMIN_READ_USER])
-  @Get('profile')
-  getProfile(@Request() req) {
-    return this.usersServices.findUserByName(req.user.username);
+  @Get()
+  getListUser(@Query() query: QueryUserDto) {
+    return this.usersServices.findListUser(query);
   }
 
   @UseGuards(JwtAuthGuard, PermissionGuard)
-  @Permission([PERMISSIONS_GLOBAL.ADMIN_UPDATE_USER])
-  @Patch('update-user')
-  updateUser(
-    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
-  ): Promise<UserResponse> {
-    return this.usersServices.updateUser(updateUserDto);
-  }
-
-  @UseGuards(JwtAuthGuard, PermissionGuard)
-  @Permission([PERMISSIONS_GLOBAL.ADMIN_DELETE_USER])
-  @Patch('delete-user')
-  deleteUser(
-    @Body(ValidationPipe) deleteUserDto: DeleteUserDto,
-  ): Promise<UserResponse> {
-    return this.usersServices.deleteUser(deleteUserDto);
-  }
-
-  @UseGuards(JwtAuthGuard, PermissionGuard)
-  @Permission([PERMISSIONS_GLOBAL.ADMIN_CREATE_MMUSERGROUP])
-  @Patch('create-mmUserGroup')
-  createMmUserGroup(
-    @Body(ValidationPipe) createMmUserGroupDto: CreateMmUserGroupDto,
-    @Request() req,
-  ): Promise<MmUserGroupResponse> {
-    return this.usersServices.createAssignToGroup(createMmUserGroupDto, req);
-  }
-
-  @UseGuards(JwtAuthGuard, PermissionGuard)
-  @Permission([PERMISSIONS_GLOBAL.ADMIN_DELETE_MMUSERGROUP])
-  @Patch('delete-mmUserGroup')
-  deleteMmUserGroup(
-    @Body(ValidationPipe) deleteMmUserGroupDto: DeleteMmUserGroupDto,
-  ): Promise<MmUserGroupResponse> {
-    return this.usersServices.deleteAssignToGroup(deleteMmUserGroupDto);
-  }
-
-  // RU User Me
-
-  @UseGuards(JwtAuthGuard, PermissionGuard)
-  @Permission([PERMISSIONS_GLOBAL.ME_READ_USER])
+  @Permission([
+    PERMISSIONS_GLOBAL.SELFSERVICE_READ_USER,
+    PERMISSIONS_GLOBAL.ADMIN_READ_USER,
+  ])
   @UseInterceptors(FieldSerializerInterceptor)
   @Get('me')
   getMe(@Request() req) {
     return this.usersServices.findUserByName(req.user.username);
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permission([PERMISSIONS_GLOBAL.SELFSERVICE_UPDATE_USER])
+  @Patch('me')
+  updateMe(
+    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+    @Request() req,
+  ): Promise<UserResponse> {
+    return this.usersServices.updateMe(
+      req.user.userId,
+      updateUserDto,
+      req.user,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permission([PERMISSIONS_GLOBAL.SELFSERVICE_READ_GROUP])
+  @UseInterceptors(FieldSerializerInterceptor)
+  @Get('me/groups')
+  getMyGroup(@Request() req) {
+    return this.usersServices.getMyGroups(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permission([PERMISSIONS_GLOBAL.ADMIN_READ_USER])
+  @Get(':id')
+  getUser(@Param('id') id: string) {
+    return this.usersServices.findUserById(id);
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permission([PERMISSIONS_GLOBAL.ADMIN_UPDATE_USER])
+  @Patch(':id')
+  updateUser(
+    @Param('id') id: string,
+    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+    @Request() req,
+  ): Promise<UserResponse> {
+    return this.usersServices.updateUser(id, updateUserDto, req.user);
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permission([PERMISSIONS_GLOBAL.ADMIN_READ_USER])
+  @Get(':id/groups')
+  getGroups(@Param('id') id: string) {
+    return this.usersServices.getGroups(id);
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permission([PERMISSIONS_GLOBAL.ADMIN_READ_PERMISSION])
+  @Get(':id/perms')
+  getRoles(@Param('id') id: string) {
+    return this.usersServices.getPermissions(id);
   }
 }

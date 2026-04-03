@@ -5,8 +5,8 @@ import { Controller, Get } from '@nestjs/common';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getHello(): string {
+  @Get('app/health')
+  get(): string {
     return this.appService.get();
   }
 }

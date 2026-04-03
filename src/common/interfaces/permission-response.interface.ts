@@ -1,9 +1,12 @@
-export interface RoleResponse {
+export interface PermissionResponse {
   id: string;
-  name: string;
   label: string | null;
-  description: string | null;
+  action: string;
+  resource: string;
+  scope: string;
+  fields: string[];
   active: boolean;
+  description: string | null;
   createdAt: Date;
   updatedAt: Date;
   createdById: string;

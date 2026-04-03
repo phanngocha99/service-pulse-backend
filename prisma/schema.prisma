@@ -11,116 +11,337 @@ datasource db {
   provider = "postgresql"
 }
 
+// ENUM
+
+enum IncidentStatus {
+  NEW
+  IN_PROGRESS
+  ON_HOLD
+  RESOLVED
+  REOPEN
+  CLOSED
+  CANCELED
+}
+
+enum Impact {
+  HIGH_1
+  MEDIUM_2
+  LOW_3
+}
+
+enum Urgency {
+  HIGH_1
+  MEDIUM_2
+  LOW_3
+}
+
+enum OnHoldReason {
+  AWAITING_REQUESTER
+  AWAITING_CHANGE
+  AWAITING_VENDOR
+}
+
+enum SLAType {
+  RESPONSE
+  RESOLUTION
+}
+
+enum SLAStatus {
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  BREACHED
+}
+
+// MODEL
+
 model User {
-  id                  Int                @id @default(autoincrement())
-  name                String             @unique
-  email               String?
-  password            String
-  needToResetPassword Boolean            @default(true)
-  active              Boolean            @default(true)
-  createdAt           DateTime           @default(now())
-  // Relations for other tables
-  createdGroups       Group[]            @relation("GroupCreator")
-  updatedGroups       Group[]            @relation("GroupUpdater")
-  createdRoles        Role[]             @relation("RoleCreator")
-  updatedRoles        Role[]             @relation("RoleUpdater")
-  createdUserGroups   MMUserGroup[]      @relation("MMUserGroupCreator")
-  createdGroupRoles   MMGroupRole[]      @relation("MMGroupRoleCreator")
-  createdRolePerms    MMRolePermission[] @relation("MMRolePermCreator")
-  // Relationship
-  userGroups          MMUserGroup[]      @relation("UserToMM")
+  id                   String             @id @default(cuid(2))
+  name                 String             @unique
+  password             String
+  active               Boolean            @default(true)
+  needToResetPassword  Boolean            @default(true)
+  label                String?
+  email                String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  createdById          String
+  updatedById          String
+  createdBy            User               @relation("UserCreator", fields: [createdById], references: [id])
+  updatedBy            User               @relation("UserUpdator", fields: [updatedById], references: [id])
+  createdUsers         User[]             @relation("UserCreator")
+  updatedUsers         User[]             @relation("UserUpdator")
+  createdGroups        Group[]            @relation("GroupCreator")
+  updatedGroups        Group[]            @relation("GroupUpdater")
+  createdRoles         Role[]             @relation("RoleCreator")
+  updatedRoles         Role[]             @relation("RoleUpdater")
+  createdPerms         Permission[]       @relation("PermissionCreator")
+  UpdatedPerms         Permission[]       @relation("PermissionUpdator")
+  userGroups           MMUserGroup[]      @relation("MMUserGroup")
+  createdUserGroups    MMUserGroup[]      @relation("MMUserGroupCreator")
+  updatedUserGroups    MMUserGroup[]      @relation("MMUserGroupUpdator")
+  createdGroupRoles    MMGroupRole[]      @relation("MMGroupRoleCreator")
+  updatedGroupRoles    MMGroupRole[]      @relation("MMGroupRoleUpdator")
+  createdRolePerms     MMRolePermission[] @relation("MMRolePermCreator")
+  updatedRolePerms     MMRolePermission[] @relation("MMRolePermUpdator")
+  openedIncidents      Incident[]         @relation("OpenedBy")
+  createdIncidents     Incident[]         @relation("CreatedIncidents")
+  updatedIncidents     Incident[]         @relation("UpdatedIncidents")
+  assignedIncidents    Incident[]         @relation("AssignedTo")
+  callerIncidents      Incident[]         @relation("callerId")
+  createdCategory      Category[]         @relation("CreatedCategory")
+  updatedCategory      Category[]         @relation("UpdatedCategory")
+  createdSubCategory   SubCategory[]      @relation("CreatedSubCategory")
+  updatedSubCategory   SubCategory[]      @relation("UpdatedSubCategory")
+  createdUserComments  Comment[]          @relation("UserComment")
+  createdUserAuditLogs AuditLog[]         @relation("UserAudit")
 }
 
 model Group {
-  id          Int           @id @default(autoincrement())
+  id          String        @id @default(cuid(2))
   name        String        @unique
   description String
   active      Boolean       @default(true)
+  label       String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-  // Relation fields
-  createdById Int
-  updatedById Int
-  createdBy   User          @relation("GroupCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  updatedBy   User          @relation("GroupUpdater", fields: [updatedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  // Relationship
-  userGroups  MMUserGroup[]
-  groupRoles  MMGroupRole[]
+  createdById String
+  updatedById String
+  createdBy   User          @relation("GroupCreator", fields: [createdById], references: [id])
+  updatedBy   User          @relation("GroupUpdater", fields: [updatedById], references: [id])
+  userGroups  MMUserGroup[] @relation("MMGroupUser")
+  groupRoles  MMGroupRole[] @relation("MMGroupRole")
+  incidents   Incident[]    @relation("AssignmentGroup")
+  categories  Category[]    @relation("GroupCategory")
 }
 
 model Role {
-  id              Int                @id @default(autoincrement())
+  id              String             @id @default(cuid(2))
   name            String             @unique
+  label           String?
   description     String
   active          Boolean            @default(true)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
-  // Relation fields
-  createdById     Int
-  updatedById     Int
-  createdBy       User               @relation("RoleCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  updatedBy       User               @relation("RoleUpdater", fields: [updatedById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  // Relationship
-  groupRoles      MMGroupRole[]
-  rolePermissions MMRolePermission[]
+  createdById     String
+  updatedById     String
+  createdBy       User               @relation("RoleCreator", fields: [createdById], references: [id])
+  updatedBy       User               @relation("RoleUpdater", fields: [updatedById], references: [id])
+  groupRoles      MMGroupRole[]      @relation("MMRoleGroup")
+  rolePermissions MMRolePermission[] @relation("MMRolePermission")
 }
 
 model Permission {
-  id              Int                @id @default(autoincrement())
+  id              String             @id @default(cuid(2))
+  label           String?
   action          String
   resource        String
   scope           String
   active          Boolean            @default(true)
   description     String
-  fields          String[]           @default(["me"])
+  fields          String[]           @default(["id"])
   createdAt       DateTime           @default(now())
-  rolePermissions MMRolePermission[]
+  updatedAt       DateTime           @updatedAt
+  createdById     String
+  updatedById     String
+  createdBy       User               @relation("PermissionCreator", fields: [createdById], references: [id])
+  updatedBy       User               @relation("PermissionUpdator", fields: [updatedById], references: [id])
+  rolePermissions MMRolePermission[] @relation("MMPermissionRole")
 
   @@unique([action, resource, scope, fields])
 }
 
 // Many-to-Many Relations
 model MMUserGroup {
-  userId      Int
-  groupId     Int
+  id          String   @unique @default(cuid(2))
+  userId      String
+  groupId     String
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
-  createdById Int
-  createdBy   User     @relation("MMUserGroupCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  // Relation fields
-  user        User     @relation("UserToMM", fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  group       Group    @relation(fields: [groupId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  updatedAt   DateTime @updatedAt
+  createdById String
+  updatedById String
+  updatedBy   User     @relation("MMUserGroupUpdator", fields: [updatedById], references: [id])
+  createdBy   User     @relation("MMUserGroupCreator", fields: [createdById], references: [id])
+  user        User     @relation("MMUserGroup", fields: [userId], references: [id])
+  groupUser   Group    @relation("MMGroupUser", fields: [groupId], references: [id])
 
   // Primary key
   @@id([userId, groupId])
 }
 
 model MMGroupRole {
-  groupId     Int
-  roleId      Int
+  id          String   @unique @default(cuid(2))
+  groupId     String
+  roleId      String
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
-  createdById Int
-  createdBy   User     @relation("MMGroupRoleCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  // Relation fields
-  group       Group    @relation(fields: [groupId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  role        Role     @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  updatedAt   DateTime @updatedAt
+  createdById String
+  updatedById String
+  updatedBy   User     @relation("MMGroupRoleUpdator", fields: [updatedById], references: [id])
+  createdBy   User     @relation("MMGroupRoleCreator", fields: [createdById], references: [id])
+  roleGroup   Role     @relation("MMRoleGroup", fields: [roleId], references: [id])
+  groupRole   Group    @relation("MMGroupRole", fields: [groupId], references: [id])
 
   // Primary key
   @@id([groupId, roleId])
 }
 
 model MMRolePermission {
-  roleId       Int
-  permissionId Int
+  id           String     @unique @default(cuid(2))
+  roleId       String
+  permissionId String
   active       Boolean    @default(true)
   createdAt    DateTime   @default(now())
-  createdById  Int
-  createdBy    User       @relation("MMRolePermCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  // Relation fields
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  updatedAt    DateTime   @updatedAt
+  createdById  String
+  updatedById  String
+  updatedBy    User       @relation("MMRolePermUpdator", fields: [updatedById], references: [id])
+  createdBy    User       @relation("MMRolePermCreator", fields: [createdById], references: [id])
+  rolePerm     Role       @relation("MMRolePermission", fields: [roleId], references: [id])
+  permRole     Permission @relation("MMPermissionRole", fields: [permissionId], references: [id])
 
   // Primary key
   @@id([roleId, permissionId])
+}
+
+model Incident {
+  id               String         @id @default(cuid(2))
+  number           Int            @unique @default(autoincrement())
+  active           Boolean        @default(true)
+  title            String
+  shortDescription String         @db.Text
+  description      String         @db.Text
+  status           IncidentStatus @default(NEW)
+
+  // Categorization
+  categoryId    String
+  subCategoryId String
+  category      Category    @relation("categoryIncident", fields: [categoryId], references: [id])
+  subCategory   SubCategory @relation("subcategoryIncident", fields: [subCategoryId], references: [id])
+
+  // Priority Matrix
+  impact   Impact
+  urgency  Urgency
+  priority Int // Calculated: Impact x Urgency
+
+  // Assignment
+  assignmentGroupId String?
+  assignedToId      String?
+  openedById        String
+  assignmentGroup   Group?  @relation("AssignmentGroup", fields: [assignmentGroupId], references: [id])
+  assignedTo        User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
+  openedBy          User    @relation("OpenedBy", fields: [openedById], references: [id])
+
+  // Resolution
+  resolutionNotes String?       @db.Text
+  resolvedAt      DateTime?
+  closedAt        DateTime?
+  onHoldReason    OnHoldReason?
+
+  // Audit & Concurrency  
+  version     Int          @default(1)
+  attachments Attachment[] @relation("attachmentsId")
+  comments    Comment[]    @relation("commentsId")
+  auditLogs   AuditLog[]   @relation("auditLogsId")
+  slaTasks    SLATask[]    @relation("slaTasksId")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String
+  updatedById String
+  updatedBy   User     @relation("UpdatedIncidents", fields: [updatedById], references: [id])
+  createdBy   User     @relation("CreatedIncidents", fields: [createdById], references: [id])
+  callerId    String?
+  caller      User?    @relation("callerId", fields: [callerId], references: [id])
+}
+
+model Category {
+  id             String        @id @default(cuid(2))
+  name           String        @unique
+  label          String?
+  active         Boolean       @default(true)
+  urlProject     String?
+  description    String
+  defaultgroupId String
+  defaultGroupId Group         @relation("GroupCategory", fields: [defaultgroupId], references: [id])
+  subCategoryId  String
+  subCategories  SubCategory[] @relation("SubcategoryCategory")
+  incidents      Incident[]    @relation("categoryIncident")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  createdById    String
+  updatedById    String
+  updatedBy      User          @relation("UpdatedCategory", fields: [updatedById], references: [id])
+  createdBy      User          @relation("CreatedCategory", fields: [createdById], references: [id])
+}
+
+model SubCategory {
+  id          String     @id @default(cuid(2))
+  name        String
+  active      Boolean    @default(true)
+  label       String?
+  description String
+  categoryId  String
+  category    Category   @relation("SubcategoryCategory", fields: [categoryId], references: [id])
+  incidents   Incident[] @relation("subcategoryIncident")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  createdById String
+  updatedById String
+  updatedBy   User       @relation("UpdatedSubCategory", fields: [updatedById], references: [id])
+  createdBy   User       @relation("CreatedSubCategory", fields: [createdById], references: [id])
+}
+
+model SLATask {
+  id             String    @id @default(cuid(2))
+  incidentId     String
+  incident       Incident  @relation("slaTasksId", fields: [incidentId], references: [id])
+  description    String
+  active         Boolean   @default(true)
+  type           SLAType
+  startTime      DateTime  @default(now())
+  endTime        DateTime?
+  actualEndTime  DateTime?
+  status         SLAStatus @default(IN_PROGRESS)
+  pausedDuration Int       @default(0)
+  lastPausedAt   DateTime?
+}
+
+model Comment {
+  id          String   @id @default(cuid(2))
+  active      Boolean  @default(true)
+  incidentId  String
+  incident    Incident @relation("commentsId", fields: [incidentId], references: [id])
+  text        String   @db.Text
+  isInternal  Boolean  @default(false)
+  createdById String
+  createdBy   User     @relation("UserComment", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(cuid(2))
+  incidentId  String
+  incident    Incident @relation("auditLogsId", fields: [incidentId], references: [id])
+  fieldName   String
+  oldValue    String?
+  newValue    String?
+  createdById String
+  createdBy   User     @relation("UserAudit", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Attachment {
+  id          String   @id @default(cuid(2))
+  description String
+  active      Boolean  @default(true)
+  fileName    String
+  fileType    String
+  fileSize    Int
+  url         String
+  createdAt   DateTime @default(now())
+  incidentId  String
+  incident    Incident @relation("attachmentsId", fields: [incidentId], references: [id])
 }

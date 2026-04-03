@@ -6,13 +6,13 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Permission } from '../common/decorators/permission.decorator.ts';
-import { PermissionsService } from './permissions.service.js';
+import { AccessControlServices } from '../common/access-control/access-control.service.js';
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private permissionsService: PermissionsService,
+    private accessControlServices: AccessControlServices,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -22,14 +22,13 @@ export class PermissionGuard implements CanActivate {
       context.getHandler(),
     );
     if (!requiredPermissions) return true;
-
     // If user not found then Fail
     const request = context.switchToHttp().getRequest();
     const user = request.user;
     if (!user || !user.userId) return false;
 
     // If user has permissions & field-permissions then Pass
-    const dbPermissions = await this.permissionsService.getPermissions(
+    const dbPermissions = await this.accessControlServices.getPermissions(
       user.userId,
     );
     if (!dbPermissions || dbPermissions.length === 0) return false;
@@ -51,7 +50,9 @@ export class PermissionGuard implements CanActivate {
       );
 
       if (isMatch && perm.fields) {
-        perm.fields?.forEach((fields) => allAllowedFields.add(fields));
+        for (const field of perm.fields) {
+          allAllowedFields.add(field);
+        }
       }
     }
     // Has "All" overides
@@ -64,7 +65,6 @@ export class PermissionGuard implements CanActivate {
         const forbiddenFields = bodyKeys.filter(
           (key) => !allAllowedFields.has(key),
         );
-
         if (forbiddenFields.length > 0) {
           hasFieldsPermissions = false;
           throw new ForbiddenException({

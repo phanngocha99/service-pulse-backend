@@ -1,40 +1,40 @@
 import {
   Controller,
   UseGuards,
+  Query,
   Get,
   Post,
   Patch,
   Body,
   ValidationPipe,
   Request,
+  Param,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.ts';
-import { PermissionGuard } from '../permissions/permissions.guard.js';
-import { Permission } from '../common/decorators/permission.decorator.js';
-import { RoleResponse } from '../common/interfaces/role-response.interface.js';
-import { RolesService } from '../roles/roles.service.js';
 import {
   CreateRoleDto,
   UpdateRoleDto,
-  DeleteRoleDto,
+  QueryRoleDto,
 } from '../roles/dto/role.dto.js';
+
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.ts';
+import { PERMISSIONS_GLOBAL } from '../permissions/constant/global.permissions.constant.js';
+import { PermissionGuard } from '../permissions/permissions.guard.js';
+import { Permission } from '../common/decorators/permission.decorator.js';
+import { RolesService } from '../roles/roles.service.js';
+import { RoleResponse } from '../common/interfaces/role-response.interface.js';
 
 @Controller('roles')
 export class RolesController {
   constructor(private rolesService: RolesService) {}
 
-  // Check connection
-  @Get('roles')
+  @Get('health')
   test() {
     return 'roles-ok';
   }
 
-  // CRUD Role Global
   @UseGuards(JwtAuthGuard, PermissionGuard)
-  @Permission([
-    { action: 'create', resource: 'role', scope: 'global', fields: ['all'] },
-  ])
-  @Post('/create-role')
+  @Permission([PERMISSIONS_GLOBAL.ADMIN_CREATE_ROLE])
+  @Post()
   createRole(
     @Body(ValidationPipe) createRoleDto: CreateRoleDto,
     @Request() req,
@@ -43,35 +43,29 @@ export class RolesController {
   }
 
   @UseGuards(JwtAuthGuard, PermissionGuard)
-  @Permission([
-    { action: 'read', resource: 'role', scope: 'global', fields: ['all'] },
-  ])
-  @Get('role')
-  getRole(@Request() req) {
-    return req.role;
+  @Permission([PERMISSIONS_GLOBAL.ADMIN_READ_ROLE])
+  @Get()
+  getListRole(@Query() query: QueryRoleDto) {
+    return this.rolesService.findListRole(query);
   }
 
   @UseGuards(JwtAuthGuard, PermissionGuard)
-  @Permission([
-    { action: 'update', resource: 'role', scope: 'global', fields: ['all'] },
-  ])
-  @Patch('update-role')
+  @Permission([PERMISSIONS_GLOBAL.ADMIN_READ_ROLE])
+  @Get(':id')
+  getRole(@Param('id') id: string) {
+    return this.rolesService.findRoleById(id);
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Permission([PERMISSIONS_GLOBAL.ADMIN_UPDATE_ROLE])
+  @Patch(':id')
   updateRole(
+    @Param('id') id: string,
     @Body(ValidationPipe) updateRoleDto: UpdateRoleDto,
     @Request() req,
   ): Promise<RoleResponse> {
-    return this.rolesService.updateRole(updateRoleDto, req.user);
+    return this.rolesService.updateRole(id, updateRoleDto, req.user);
   }
 
-  @UseGuards(JwtAuthGuard, PermissionGuard)
-  @Permission([
-    { action: 'delete', resource: 'role', scope: 'global', fields: ['all'] },
-  ])
-  @Patch('delete-role')
-  deleteRole(
-    @Body(ValidationPipe) deleteRoleDto: DeleteRoleDto,
-    @Request() req,
-  ): Promise<RoleResponse> {
-    return this.rolesService.deleteRole(deleteRoleDto, req.user);
-  }
+  // Related
 }

@@ -7,9 +7,9 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   // Check connection
-  @Get('test')
+  @Get('health')
   test() {
-    return 'authenticated-ok';
+    return 'auth-ok';
   }
 
   // Login

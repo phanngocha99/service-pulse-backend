@@ -1,8 +1,12 @@
 export interface UserResponse {
-  id: number;
-  name: string;
-  email: string | null;
+  id: string;
   needToResetPassword: boolean;
+  label: string | null;
+  email: string | null;
+  name: string;
   active: boolean;
   createdAt: Date;
+  updatedAt: Date;
+  createdById: string;
+  updatedById: string;
 }

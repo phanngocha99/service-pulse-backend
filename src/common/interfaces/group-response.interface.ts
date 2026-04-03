@@ -1,10 +1,11 @@
 export interface GroupResponse {
-  id: number;
+  id: string;
   name: string;
-  description: string;
+  label: string | null;
+  description: string | null;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
-  createdById: number;
-  updatedById: number;
+  createdById: string;
+  updatedById: string;
 }

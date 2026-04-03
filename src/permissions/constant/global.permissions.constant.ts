@@ -1,17 +1,19 @@
 export const PERMISSIONS_GLOBAL = {
+  // -- USER -- //
+
   // ADMIN
-  ADMIN_CREATE_USER: {
-    action: 'create',
-    resource: 'user',
-    scope: 'global',
-    description: 'Can create new susers',
-    fields: ['all'],
-  },
   ADMIN_READ_USER: {
     action: 'read',
     resource: 'user',
     scope: 'global',
     description: 'Can read new users',
+    fields: ['all'],
+  },
+  ADMIN_CREATE_USER: {
+    action: 'create',
+    resource: 'user',
+    scope: 'global',
+    description: 'Can create new users',
     fields: ['all'],
   },
   ADMIN_UPDATE_USER: {
@@ -29,7 +31,42 @@ export const PERMISSIONS_GLOBAL = {
     fields: ['all'],
   },
 
-  // GROUP
+  ADMIN_CREATE_MMUSERGROUP: {
+    action: 'create',
+    resource: 'mMUserGroup',
+    scope: 'global',
+    description: 'Can assign user to group',
+    fields: ['all'],
+  },
+
+  ADMIN_DELETE_MMUSERGROUP: {
+    action: 'delete',
+    resource: 'mMUserGroup',
+    scope: 'global',
+    description: 'Remove assign user to group',
+    fields: ['all'],
+  },
+
+  //   SELFSERVICE
+  SELFSERVICE_READ_USER: {
+    action: 'read',
+    resource: 'user',
+    scope: 'global',
+    description: 'Can read my profile',
+    fields: ['active', 'createdAt', 'email', 'id', 'label', 'name'],
+  },
+
+  SELFSERVICE_UPDATE_USER: {
+    action: 'read',
+    resource: 'user',
+    scope: 'global',
+    description: 'Can read my profile',
+    fields: ['email', 'id', 'label'],
+  },
+
+  /// -- GROUP -- //
+
+  // ADMIN
   ADMIN_CREATE_GROUP: {
     action: 'create',
     resource: 'group',
@@ -59,7 +96,29 @@ export const PERMISSIONS_GLOBAL = {
     fields: ['all'],
   },
 
-  // ROLE
+  //  SELFSERVICE
+
+  SELFSERVICE_READ_GROUP: {
+    action: 'read',
+    resource: 'group',
+    scope: 'global',
+    description: 'Can read group of me',
+    fields: [
+      'active',
+      'createdAt',
+      'createdById',
+      'description',
+      'id',
+      'label',
+      'name',
+      'updatedAt',
+      'updatedById',
+    ],
+  },
+
+  // -- ROLE -- //
+
+  // ADMIN
   ADMIN_CREATE_ROLE: {
     action: 'create',
     resource: 'role',
@@ -89,29 +148,77 @@ export const PERMISSIONS_GLOBAL = {
     fields: ['all'],
   },
 
-  // MMUSERGROUP
-  ADMIN_CREATE_MMUSERGROUP: {
-    action: 'create',
-    resource: 'mmUserGroup',
-    scope: 'global',
-    description: 'Can assign user to group',
-    fields: ['all'],
-  },
+  // SELFSERVICE
 
-  ADMIN_DELETE_MMUSERGROUP: {
-    action: 'delete',
-    resource: 'mmUserGroup',
-    scope: 'global',
-    description: 'Remove assign user to group',
-    fields: ['all'],
-  },
-
-  //   ME
-  ME_READ_USER: {
+  SELFSERVICE_READ_ROLE: {
     action: 'read',
-    resource: 'user',
+    resource: 'role',
     scope: 'global',
-    description: 'Can read my profile',
-    fields: ['name,email'],
+    description: 'Can read role of me',
+    fields: [
+      'active',
+      'createdAt',
+      'createdById',
+      'description',
+      'id',
+      'label',
+      'name',
+      'updatedAt',
+      'updatedById',
+    ],
+  },
+
+  // -- PERMISSION -- //
+
+  // ADMIN
+  ADMIN_READ_PERMISSION: {
+    action: 'read',
+    resource: 'permission',
+    scope: 'global',
+    description: 'Can read permissions for users/groups/roles',
+    fields: ['all'],
+  },
+
+  ADMIN_UPDATE_PERMISSION: {
+    action: 'update',
+    resource: 'permission',
+    scope: 'global',
+    description: 'Can update permissions for users/groups/roles',
+    fields: ['all'],
+  },
+
+  ADMIN_CREATE_PERMISSION: {
+    action: 'create',
+    resource: 'permission',
+    scope: 'global',
+    description: 'Can create permissions for users/groups/roles',
+    fields: ['all'],
+  },
+
+  ADMIN_DELETE_PERMISSION: {
+    action: 'delete',
+    resource: 'permission',
+    scope: 'global',
+    description: 'Can delete permissions for users/groups/roles',
+    fields: ['all'],
+  },
+
+  // SELFSERVICE
+
+  SELFSERVICE_READ_PERMISSION: {
+    action: 'read',
+    resource: 'permission',
+    scope: 'global',
+    description: 'Can read own permissions',
+    fields: [
+      'action',
+      'active',
+      'description',
+      'fields',
+      'id',
+      'label',
+      'resource',
+      'scope',
+    ],
   },
 };
