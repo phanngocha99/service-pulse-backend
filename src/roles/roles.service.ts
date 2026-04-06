@@ -101,7 +101,7 @@ export class RolesService {
     }
 
     return this.prismaService.role.update({
-      where: { name: dto.name },
+      where: { id },
       data: {
         description: dto.description,
         updatedById: req.userId,

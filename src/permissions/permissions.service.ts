@@ -98,7 +98,7 @@ export class PermissionsService {
   async createPermission(dto: CreatePermissionDto, req: LoginResponse) {
     const permExists = await this.findPermision(dto);
     if (permExists) {
-      throw new NotFoundException('Permission already existed!');
+      throw new ConflictException('Permission already existed!');
     }
     const searchFields = dto.fields.sort();
     const labelString =

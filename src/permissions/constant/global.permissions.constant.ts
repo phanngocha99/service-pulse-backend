@@ -221,4 +221,95 @@ export const PERMISSIONS_GLOBAL = {
       'scope',
     ],
   },
+
+  // -- CATEGORY --
+  ADMIN_CREATE_CATEGORY: {
+    action: 'create',
+    resource: 'category',
+    scope: 'global',
+    description: 'Can create new categories',
+    fields: ['all'],
+  },
+  ADMIN_READ_CATEGORY: {
+    action: 'read',
+    resource: 'category',
+    scope: 'global',
+    description: 'Can read categories',
+    fields: ['all'],
+  },
+  ADMIN_UPDATE_CATEGORY: {
+    action: 'update',
+    resource: 'category',
+    scope: 'global',
+    description: 'Can update categories',
+    fields: ['all'],
+  },
+  ADMIN_DELETE_CATEGORY: {
+    action: 'delete',
+    resource: 'category',
+    scope: 'global',
+    description: 'Can delete categories',
+    fields: ['all'],
+  },
+
+  // -- SUBCATEGORY --
+
+  ADMIN_CREATE_SUBCATEGORY: {
+    action: 'create',
+    resource: 'subcategory',
+    scope: 'global',
+    description: 'Can create new subcategories',
+    fields: ['all'],
+  },
+  ADMIN_READ_SUBCATEGORY: {
+    action: 'read',
+    resource: 'subcategory',
+    scope: 'global',
+    description: 'Can read subcategories',
+    fields: ['all'],
+  },
+  ADMIN_UPDATE_SUBCATEGORY: {
+    action: 'update',
+    resource: 'subcategory',
+    scope: 'global',
+    description: 'Can update subcategories',
+    fields: ['all'],
+  },
+  ADMIN_DELETE_SUBCATEGORY: {
+    action: 'delete',
+    resource: 'subcategory',
+    scope: 'global',
+    description: 'Can delete subcategories',
+    fields: ['all'],
+  },
+
+  // -- INCIDENT --
+  ADMIN_CREATE_INCIDENT: {
+    action: 'create',
+    resource: 'incident',
+    scope: 'global',
+    description: 'Can create new incidents',
+    fields: ['all'],
+  },
+  ADMIN_READ_INCIDENT: {
+    action: 'read',
+    resource: 'incident',
+    scope: 'global',
+    description: 'Can read incidents',
+    fields: ['all'],
+  },
+  ADMIN_UPDATE_INCIDENT: {
+    action: 'update',
+    resource: 'incident',
+    scope: 'global',
+    description: 'Can update incidents',
+    fields: ['all'],
+  },
+  ADMIN_DELETE_INCIDENT: {
+    action: 'delete',
+    resource: 'incident',
+    scope: 'global',
+    description: 'Can delete incidents',
+    fields: ['all'],
+  },
 };

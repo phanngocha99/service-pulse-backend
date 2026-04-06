@@ -61,7 +61,7 @@ export class GroupsController {
   @UseGuards(JwtAuthGuard, PermissionGuard)
   @Permission([PERMISSIONS_GLOBAL.ADMIN_UPDATE_GROUP])
   @Patch(':id')
-  updateUser(
+  updateGroup(
     @Param('id') id: string,
     @Body(ValidationPipe) updateGroupDto: UpdateGroupDto,
     @Request() req,
